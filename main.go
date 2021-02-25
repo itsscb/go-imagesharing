@@ -14,6 +14,7 @@ import (
 var tpl *template.Template
 var images []string
 var users []user
+var files []os.FileInfo
 
 type user struct {
 	Username string
@@ -21,30 +22,12 @@ type user struct {
 }
 
 func main() {
-	/*
-		users = []user{
-			user{
-				Username: "dennisp",
-				Password: "hÄberle#0815",
-			},
-			user{
-				Username: "brigittes",
-				Password: "nAnA#1990",
-			},
-			user{
-				Username: "veronikam",
-				Password: "tAnteV#1990",
-			},
-			user{
-				Username: "matthiasm",
-				Password: "c0usinX!",
-			},
-		}
-		fmt.Println("\nusers: ", users)
-		j, _ := json.Marshal(users)
-		fmt.Println(string(j))
-		_ = ioutil.WriteFile("users.json", j, 0644)
-	*/
+
+	var err error
+	files, err = ioutil.ReadDir("public/img")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	usersFile, err := os.Open("users.json")
 	if err != nil {
@@ -57,8 +40,8 @@ func main() {
 	}
 	fmt.Println(users)
 
-	fs := http.FileServer(http.Dir("./public/"))
-	http.Handle("/public/", http.StripPrefix("/public/", fs))
+	fsp := http.FileServer(http.Dir("./public/"))
+	http.Handle("/public/", http.StripPrefix("/public/", fsp))
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", login)
@@ -137,11 +120,6 @@ func index(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/login", 303)
 	}
 
-	files, err := ioutil.ReadDir("public/img")
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	err = req.ParseForm()
 	if err != nil {
 		fmt.Println(err)
@@ -158,7 +136,7 @@ func index(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/download", 303)
 	}
 
-	err = tpl.ExecuteTemplate(w, "index.gohtml", files)
+	err = tpl.ExecuteTemplate(w, "index.gohtml", files[:len(files)-1])
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		fmt.Println(err)
@@ -171,6 +149,7 @@ func download(w http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 	}
 	images = nil
+	http.ServeFile(w, req, "temp.zip")
 	http.Redirect(w, req, "/", 303)
 }
 
