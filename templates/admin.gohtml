@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html style="background: #000000;color: rgb(255,255,255);">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>go-imagesharing</title>
+    <link rel="stylesheet" href="public/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/assets/fonts/ionicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.8.2/css/lightbox.min.css">
+    <link rel="stylesheet" href="public/assets/css/Lightbox-Gallery.css">
+    <link rel="stylesheet" href="public/assets/css/Login-Form-Dark.css">
+    <link rel="stylesheet" href="public/assets/css/Navigation-Clean.css">
+    <link rel="stylesheet" href="public/assets/css/styles.css">
+</head>
+
+<body style="background: rgba(255,255,255,0);">
+    <nav class="navbar navbar-light navbar-expand-md navigation-clean" style="background: rgba(255,255,255,0);color: rgb(255,255,255);">
+        <div class="container"><a class="navbar-brand" href="#">go-imagesharing</a><button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navcol-1">
+                <ul class="nav navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="logout" style="color: rgb(255,255,255);">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="photo-gallery" style="background: rgb(0,0,0);color: rgb(255,255,255);">
+        <div class="container" style="margin-bottom: 10rem;">
+            <div class="intro">
+                <h2 class="text-center">administration</h2>
+            </div>
+            {{ range $key, $value := .}}
+            <form method="post" name="{{ $value.Username }}" style="margin-bottom: 3rem;">
+                <div class="form-row photos">
+                    <div class="col">
+                        <p style="color: rgb(255,255,255); font-size: 30px;">{{ $value.Username }}</p><input class="form-control" type="password" name="{{ $value.Username }}" placeholder="Password">
+                        <div class="form-check"><input class="form-check-input" type="radio" id="reset-{{ $key }}" name="reset-{{ $value.Username }}" value="{{ $value.Username }}"><label class="form-check-label" for="reset-{{ $key }}">Reset password</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" id="delete-{{ $key }}" name="delete-{{ $value.Username}}" value="delete"><label class="form-check-label" for="delete-{{ $key }}">Delete</label></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-lg" type="submit">Submit</button>
+            </form>
+
+            {{ end }}
+            <form method="post" style="margin-bottom: 3rem;" name="newuser-form">
+                <div class="form-row photos">
+                    <div class="col">
+                        <p style="color: rgb(255,255,255);font-size: 30px;">New User</p><input class="form-control" type="text" name="newuser-form" placeholder="Username"><input class="form-control" type="password" name="newuser-form" placeholder="Password">
+                    </div>
+                </div><button class="btn btn-primary btn-lg" type="submit">Create</button>
+            </form>
+        </div>
+    </div>
+    <script src="public/assets/js/jquery.min.js"></script>
+    <script src="public/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.8.2/js/lightbox.min.js"></script>
+</body>
+
+</html>

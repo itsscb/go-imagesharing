@@ -29,10 +29,11 @@ type session struct {
 }
 
 type user struct {
-	Username string
-	Password string
-	Session  session
-	Files    []os.FileInfo
+	Username   string
+	Password   string
+	Session    session
+	Files      []os.FileInfo `json:"-"`
+	Permission string
 }
 
 func main() {
@@ -78,7 +79,8 @@ func main() {
 				ID:           "0",
 				lastActivity: time.Now().Add(-1400),
 			},
-			Files: nil,
+			Files:      nil,
+			Permission: u.Permission,
 		}
 	}
 
@@ -87,6 +89,7 @@ func main() {
 	fsp := http.FileServer(http.Dir("./public/"))
 	http.Handle("/public/", http.StripPrefix("/public/", fsp))
 	http.HandleFunc("/", index)
+	http.HandleFunc("/admin", admin)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", login)
 	//http.HandleFunc("/download", download)
@@ -160,6 +163,90 @@ func index(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func admin(w http.ResponseWriter, req *http.Request) {
+	cookie, err := req.Cookie("session-id")
+	if err == http.ErrNoCookie {
+		http.Redirect(w, req, "/login", 303)
+		return
+	}
+
+	var loggedin bool
+	for _, u := range users {
+		if cookie.Value == u.Session.ID {
+			if u.Permission != "admin" {
+				http.Redirect(w, req, "/login", 403)
+				return
+			}
+			loggedin = true
+			u.Session.lastActivity = time.Now()
+			break
+		}
+	}
+	if !loggedin {
+		http.Redirect(w, req, "/login", 303)
+		return
+	}
+
+	err = req.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if len(req.Form) >= 1 {
+		fmt.Println(req.Form)
+
+		var cpw bool
+		var utmp []user
+		if len(req.Form["newuser-form"]) >= 1 {
+			users[req.Form["newuser-form"][0]] = &user{
+				Username: req.Form["newuser-form"][0],
+				Password: req.Form["newuser-form"][1],
+				Session: session{
+					ID:           "0",
+					lastActivity: time.Now(),
+				},
+				Files:      nil,
+				Permission: "user",
+			}
+			cpw = true
+		}
+		for _, u := range users {
+			tf := req.Form[u.Username]
+			if len(tf) >= 1 {
+				fv := req.FormValue("delete-" + u.Username)
+				fmt.Println("FormValue: ", fv)
+				switch fv {
+				case "reset":
+					if u.Username == tf[1] {
+						u.Password = tf[0]
+						cpw = true
+					}
+
+				case "delete":
+					fmt.Println("deleting ", u.Username)
+					delete(users, u.Username)
+					cpw = true
+					continue
+				}
+			}
+			utmp = append(utmp, *u)
+		}
+		fmt.Println(users)
+		if cpw {
+			j, _ := json.Marshal(utmp)
+			fmt.Println(string(j))
+			_ = ioutil.WriteFile("users.json", j, 0644)
+		}
+
+	}
+
+	err = tpl.ExecuteTemplate(w, "admin.gohtml", users)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		fmt.Println(err)
+	}
+}
+
 func login(w http.ResponseWriter, req *http.Request) {
 	cookie, err := req.Cookie("session-id")
 	nid, _ := uuid.NewV4()
@@ -208,8 +295,13 @@ func login(w http.ResponseWriter, req *http.Request) {
 
 	for _, u := range users {
 		if cookie.Value == u.Session.ID {
-			http.Redirect(w, req, "/", 303)
-			return
+			if u.Permission == "user" {
+				http.Redirect(w, req, "/", 303)
+				return
+			} else if u.Permission == "admin" {
+				http.Redirect(w, req, "/admin", 303)
+				return
+			}
 		}
 	}
 
