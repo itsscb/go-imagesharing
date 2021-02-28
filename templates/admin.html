@@ -25,19 +25,25 @@
         </div>
     </nav>
     <div class="photo-gallery" style="background: rgb(0,0,0);color: rgb(255,255,255);">
-        <div class="container">
+        <div class="container" style="margin-bottom: 10rem;">
             <div class="intro">
-                <h2 class="text-center">go-imagesharing</h2>
-                <p class="text-center" style="color: rgb(255,255,255);">Der Download der angezeigten Bilder ist nur für Familien interne Zwecke freigegeben.<br></p>
-                <p class="text-center" style="color: rgb(255,255,255);">Ein Weitergeben der Bilder an dritte Personen/Parteien ist nicht gestattet.<br>Auch dürfen die Bilder nicht auf SocialMedia-Plattformen wie z. B. Facebook, WhatsApp, Telegram, Twitter, etc. veröffentlicht werden.</p>
-                <p class="text-center" style="color: rgb(255,255,255);">Ein Verstoß der oben genannten Punkte wird mit Ausschluss aus dieser Plattform geahndet. Das bedeutet: Bilder können nicht mehr eingesehen/heruntergeladen werden.<br></p>
+                <h2 class="text-center">administration</h2>
             </div>
-            <form method="post">
+            <form method="post" style="margin-bottom: 3rem;">
                 <div class="form-row photos">
-                    <div class="col-sm-6 col-md-4 col-lg-3 item"><a data-lightbox="photos" href="assets/img/desk.jpg"><img class="img-fluid" src="assets/img/desk.jpg"></a>
-                        <div class="form-check"><input class="form-check-input" type="checkbox" id="formCheck-1" name="dl-form" value="img1"><label class="form-check-label" for="formCheck-1">Zum Download auswählen</label></div>
+                    <div class="col">
+                        <p style="color: rgb(255,255,255);font-size: 30px;">User1</p><input class="form-control" type="password" name="admin-form" placeholder="Password">
+                        <div class="form-check"><input class="form-check-input" type="radio" id="formCheck-2" name="admin-form" value="reset"><label class="form-check-label" for="formCheck-2">Reset password</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" id="formCheck-1" name="admin-form" value="delete"><label class="form-check-label" for="formCheck-2">Delete</label></div>
                     </div>
-                </div><button class="btn btn-primary btn-lg" type="submit">Download</button>
+                </div><button class="btn btn-primary btn-lg" type="submit">Submit</button>
+            </form>
+            <form method="post" style="margin-bottom: 3rem;">
+                <div class="form-row photos">
+                    <div class="col">
+                        <p style="color: rgb(255,255,255);font-size: 30px;">New User</p><input class="form-control" type="password" name="newuser-form" placeholder="Username"><input class="form-control" type="password" name="newuser-form" placeholder="Password">
+                    </div>
+                </div><button class="btn btn-primary btn-lg" type="submit">Create</button>
             </form>
         </div>
     </div>

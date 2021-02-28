@@ -4,13 +4,15 @@ import (
 	"archive/zip"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
-	"text/template"
+	"strings"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -153,6 +155,8 @@ func index(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Disposition", "attachment; filename=pictures.zip")
 		http.ServeContent(w, req, fi.Name(), fi.ModTime(), f)
 		os.RemoveAll(output)
+		http.Redirect(w, req, "/", 200)
+		return
 		//http.Redirect(w, req, "/download", 303)
 	}
 
@@ -174,7 +178,7 @@ func admin(w http.ResponseWriter, req *http.Request) {
 	for _, u := range users {
 		if cookie.Value == u.Session.ID {
 			if u.Permission != "admin" {
-				http.Redirect(w, req, "/login", 403)
+				http.Redirect(w, req, "/login", 303)
 				return
 			}
 			loggedin = true
@@ -195,12 +199,18 @@ func admin(w http.ResponseWriter, req *http.Request) {
 	if len(req.Form) >= 1 {
 		fmt.Println(req.Form)
 
-		var cpw bool
+		var cu bool
 		var utmp []user
 		if len(req.Form["newuser-form"]) >= 1 {
+			var pw string
+			if len(req.Form["newuser-form"][1]) >= 1 {
+				pw = req.Form["newuser-form"][1]
+			} else {
+				pw = genPW()
+			}
 			users[req.Form["newuser-form"][0]] = &user{
 				Username: req.Form["newuser-form"][0],
-				Password: req.Form["newuser-form"][1],
+				Password: pw,
 				Session: session{
 					ID:           "0",
 					lastActivity: time.Now(),
@@ -208,8 +218,9 @@ func admin(w http.ResponseWriter, req *http.Request) {
 				Files:      nil,
 				Permission: "user",
 			}
-			cpw = true
+			cu = true
 		}
+
 		for _, u := range users {
 			tf := req.Form[u.Username]
 			if len(tf) >= 1 {
@@ -217,27 +228,32 @@ func admin(w http.ResponseWriter, req *http.Request) {
 				fmt.Println("FormValue: ", fv)
 				switch fv {
 				case "reset":
-					if u.Username == tf[1] {
-						u.Password = tf[0]
-						cpw = true
+					if len(tf[0]) > 0 {
+						if u.Username == tf[1] {
+							if len(tf[0]) >= 1 {
+								u.Password = tf[0]
+							} else {
+								u.Password = genPW()
+							}
+							cu = true
+						}
 					}
 
 				case "delete":
 					fmt.Println("deleting ", u.Username)
 					delete(users, u.Username)
-					cpw = true
+					cu = true
 					continue
 				}
 			}
 			utmp = append(utmp, *u)
 		}
 		fmt.Println(users)
-		if cpw {
+		if cu {
 			j, _ := json.Marshal(utmp)
 			fmt.Println(string(j))
 			_ = ioutil.WriteFile("users.json", j, 0644)
 		}
-
 	}
 
 	err = tpl.ExecuteTemplate(w, "admin.gohtml", users)
@@ -245,6 +261,7 @@ func admin(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), 500)
 		fmt.Println(err)
 	}
+	return
 }
 
 func login(w http.ResponseWriter, req *http.Request) {
@@ -370,6 +387,52 @@ func cleanSessions() {
 		}
 		time.Sleep(1800)
 	}
+}
+
+func genPW() string {
+	var password strings.Builder
+	var (
+		lowerCharSet   = "abcdedfghijklmnopqrst"
+		upperCharSet   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		specialCharSet = "!@#$%&*"
+		numberSet      = "0123456789"
+		allCharSet     = lowerCharSet + upperCharSet + specialCharSet + numberSet
+	)
+	rand.Seed(time.Now().Unix())
+	minSpecialChar := 1
+	minNum := 1
+	minUpperCase := 1
+	passwordLength := 10
+
+	//Set special character
+	for i := 0; i < minSpecialChar; i++ {
+		random := rand.Intn(len(specialCharSet))
+		password.WriteString(string(specialCharSet[random]))
+	}
+
+	//Set numeric
+	for i := 0; i < minNum; i++ {
+		random := rand.Intn(len(numberSet))
+		password.WriteString(string(numberSet[random]))
+	}
+
+	//Set uppercase
+	for i := 0; i < minUpperCase; i++ {
+		random := rand.Intn(len(upperCharSet))
+		password.WriteString(string(upperCharSet[random]))
+	}
+
+	remainingLength := passwordLength - minSpecialChar - minNum - minUpperCase
+	for i := 0; i < remainingLength; i++ {
+		random := rand.Intn(len(allCharSet))
+		password.WriteString(string(allCharSet[random]))
+	}
+	inRune := []rune(password.String())
+	rand.Shuffle(len(inRune), func(i, j int) {
+		inRune[i], inRune[j] = inRune[j], inRune[i]
+	})
+
+	return string(inRune)
 }
 
 // ZIP-Functions

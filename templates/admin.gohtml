@@ -33,7 +33,9 @@
             <form method="post" name="{{ $value.Username }}" style="margin-bottom: 3rem;">
                 <div class="form-row photos">
                     <div class="col">
-                        <p style="color: rgb(255,255,255); font-size: 30px;">{{ $value.Username }}</p><input class="form-control" type="password" name="{{ $value.Username }}" placeholder="Password">
+                        <p style="color: rgb(255,255,255); font-size: 30px;">{{ $value.Username }}</p>
+                        <p style="color: rgb(255,255,255); font-size: 20px;">{{ $value.Password }}</p>
+                        <input class="form-control" type="password" name="{{ $value.Username }}" placeholder="Password">
                         <div class="form-check"><input class="form-check-input" type="radio" id="reset-{{ $key }}" name="reset-{{ $value.Username }}" value="{{ $value.Username }}"><label class="form-check-label" for="reset-{{ $key }}">Reset password</label></div>
                         <div class="form-check"><input class="form-check-input" type="radio" id="delete-{{ $key }}" name="delete-{{ $value.Username}}" value="delete"><label class="form-check-label" for="delete-{{ $key }}">Delete</label></div>
                     </div>
@@ -45,7 +47,7 @@
             <form method="post" style="margin-bottom: 3rem;" name="newuser-form">
                 <div class="form-row photos">
                     <div class="col">
-                        <p style="color: rgb(255,255,255);font-size: 30px;">New User</p><input class="form-control" type="text" name="newuser-form" placeholder="Username"><input class="form-control" type="password" name="newuser-form" placeholder="Password">
+                        <p style="color: rgb(255,255,255);font-size: 30px;">New User</p><input class="form-control" type="text" name="newuser-form" placeholder="Username" required><input class="form-control" type="password" name="newuser-form" placeholder="Password">
                     </div>
                 </div><button class="btn btn-primary btn-lg" type="submit">Create</button>
             </form>
